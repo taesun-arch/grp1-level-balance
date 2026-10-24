@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>레벨 밸런스</title>
+<style>
+/* 복호화 대기 화면. 성공하면 문서 전체가 원본 HTML 로 바뀐다. */
+:root{
+  color-scheme:light dark;
+  --bg:#f3f4f7; --card:#ffffff; --line:#dfe3ea; --ink:#171a20; --ink-2:#4a5160; --ink-3:#7b8494; --accent:#2a78d6; --bad:#c2410c;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#14161b; --card:#1c1f26; --line:#2c313b; --ink:#e6e9ef; --ink-2:#aab2bf; --ink-3:#7c8594; --accent:#4f8ef7; --bad:#f97316; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;min-height:100%}
+.box{max-width:380px;margin:18vh auto 0;padding:22px 22px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.title{font-weight:600;font-size:15px;margin-bottom:6px}
+.msg{color:var(--ink-2);font-size:13px}
+.msg.bad{color:var(--bad)}
+form{display:flex;gap:8px;margin-top:14px}
+input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;font:inherit}
+button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:inherit;font-weight:500;cursor:pointer}
+.home{display:inline-block;margin-top:14px;color:var(--ink-3);font-size:12px;text-decoration:none}
+@media (max-width:420px){ .box{margin:12vh 16px 0} }
+</style>
+</head>
+<body>
+<main class="box">
+  <div class="title" id="title">레벨 밸런스</div>
+  <div class="msg" id="msg">여는 중…</div>
+  <form id="form" hidden>
+    <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password">
+    <button type="submit">열기</button>
+  </form>
+  <a class="home" id="home" href="index.html">← 목록</a>
+</main>
+<script>
+// 원본 HTML 을 document.write 로 이 문서에 그대로 쓴다. 전역 변수는 원본 스크립트와 공유되므로
+// 이 스크립트는 전역에 아무것도 선언하지 않는다(IIFE 안에서만).
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var id = new URLSearchParams(location.search).get('f') || '';
+  var m = /(?:^#|[#&])k=([^&]+)/.exec(location.hash);
+  $('home').href = 'index.html' + (location.hash || '');
+
+  function store(v){ try { if (v == null) localStorage.removeItem('lb-pass'); else localStorage.setItem('lb-pass', v); } catch (e) {} }
+  function saved(){ try { return localStorage.getItem('lb-pass'); } catch (e) { return null; } }
+  function say(text, bad){ var e = $('msg'); e.textContent = text; e.className = 'msg' + (bad ? ' bad' : ''); }
+  function load(src){
+    return new Promise(function(ok, fail){
+      var s = document.createElement('script');
+      s.src = src; s.onload = ok; s.onerror = function(){ fail(new Error('load')); };
+      document.head.appendChild(s);
+    });
+  }
+  function b64(s){ var bin = atob(s), out = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+
+  async function decrypt(enc, pass){
+    var km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    var key = await crypto.subtle.deriveKey({name: 'PBKDF2', salt: b64(enc.salt), iterations: enc.iter, hash: 'SHA-256'}, km,
+      {name: 'AES-GCM', length: 256}, false, ['decrypt']);
+    var pt = await crypto.subtle.decrypt({name: 'AES-GCM', iv: b64(enc.iv)}, key, b64(enc.ct));
+    var stream = new Blob([pt]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(stream).text();
+  }
+
+  function show(html){
+    delete window.LB_ENC; delete window.LB_CATALOG;
+    document.open(); document.write(html); document.close();
+  }
+
+  async function tryOpen(enc, pass, fromLink){
+    say('여는 중…');
+    var html;
+    try { html = await decrypt(enc, pass); }
+    catch (e) {
+      if (!fromLink) store(null);
+      say(fromLink ? '링크의 비밀번호가 맞지 않습니다.' : '비밀번호가 맞지 않습니다.', true);
+      $('form').hidden = false; $('pw').focus();
+      return;
+    }
+    store(pass);
+    show(html);
+  }
+
+  async function main(){
+    if (!window.crypto || !crypto.subtle || typeof DecompressionStream === 'undefined') {
+      return say('이 브라우저에서는 열 수 없습니다. 최신 Chrome · Safari · Edge 로 열어 주세요.', true);
+    }
+    try { await load('catalog.js'); } catch (e) { return say('목록을 불러오지 못했습니다.', true); }
+    var doc = null;
+    ((window.LB_CATALOG || {}).games || []).forEach(function(g){
+      g.files.forEach(function(f){ if (f.id === id) doc = {game: g.name, title: f.title, ver: f.ver}; });
+    });
+    if (!doc) return say('없는 문서입니다. 목록에서 다시 골라 주세요.', true);
+    $('title').textContent = doc.game + ' · ' + doc.title;
+    document.title = doc.game + ' · ' + doc.title;
+
+    say('내려받는 중…');
+    try { await load('data/' + encodeURIComponent(id) + '.enc.js?v=' + doc.ver); } catch (e) { return say('문서를 내려받지 못했습니다.', true); }
+    var enc = window.LB_ENC;
+
+    $('form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var v = $('pw').value.trim();
+      if (v) tryOpen(enc, v, false);
+    });
+    var pass = m ? decodeURIComponent(m[1]) : saved();
+    if (pass) return tryOpen(enc, pass, !!m);
+    say('비밀번호를 입력해 주세요.');
+    $('form').hidden = false; $('pw').focus();
+  }
+  main();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>그룹 1 레벨 밸런스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 게임 선택 화면. 팔레트는 grp1-ab-board 와 같다(라이트 기본, 다크 토글). */
+:root{
+  color-scheme:light;
+  --bg:#f3f4f7; --card:#ffffff; --card-2:#f6f7fa; --line:#dfe3ea;
+  --ink:#171a20; --ink-2:#4a5160; --ink-3:#7b8494;
+  --accent:#2a78d6;
+  --chip:#eef0f4; --shadow:0 1px 2px rgba(20,26,40,.08);
+  --font:"IBM Plex Sans",-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --mono:"IBM Plex Mono",Consolas,"Malgun Gothic",monospace;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14161b; --card:#1c1f26; --card-2:#22262e; --line:#2c313b;
+  --ink:#e6e9ef; --ink-2:#aab2bf; --ink-3:#7c8594;
+  --accent:#4f8ef7;
+  --chip:#22262e; --shadow:0 1px 0 rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);min-height:100%}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:48px 24px 40px}
+.head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--ink-3);font-size:12.5px}
+.theme{margin-left:auto;background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:5px 10px;color:var(--ink-2);font:inherit;font-size:12px;cursor:pointer}
+.theme:hover{color:var(--ink);border-color:var(--ink-3)}
+.cards{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));margin:22px 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 18px 14px;box-shadow:var(--shadow)}
+.card.empty{border-left-color:var(--line)}
+.card h2{margin:0 0 8px;font-size:16px;font-weight:600}
+.doc{display:flex;align-items:baseline;gap:10px;padding:9px 10px;margin:0 -10px;border-radius:8px;transition:background .12s}
+.doc + .doc{border-top:1px solid var(--line)}
+.doc:hover{background:var(--card-2)}
+.doc .t{font-weight:500}
+.doc .u{margin-left:auto;color:var(--ink-3);font-size:11.5px;font-family:var(--mono);white-space:nowrap}
+.doc .open{color:var(--accent);font-weight:500;font-size:12.5px;white-space:nowrap}
+.none{color:var(--ink-3);font-size:12.5px;padding:4px 0}
+.foot{margin-top:16px;color:var(--ink-3);font-size:11.5px}
+.mono{font-family:var(--mono)}
+@media (max-width:520px){ .wrap{padding:28px 16px 32px} }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="head">
+    <h1>그룹 1 레벨 밸런스</h1>
+    <span class="sub">게임별 레벨 도감 · 밸런스 카탈로그</span>
+    <button class="theme" id="theme" type="button">다크</button>
+  </div>
+  <div class="sub">문서를 누르면 원본 HTML 이 그대로 열립니다. 시각은 원본 파일 기준(한국 시간)입니다.</div>
+  <div class="cards" id="cards"></div>
+  <div class="foot">공유 링크의 비밀번호(<span class="mono">#k=</span>)는 각 문서로 그대로 넘어갑니다.</div>
+</main>
+<script src="catalog.js"></script>
+<script>
+(function(){
+  'use strict';
+  // 공유 링크의 #k=비밀번호 를 문서 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
+  var hash = location.hash || '';
+  var games = (window.LB_CATALOG || {}).games || [];
+  var root = document.getElementById('cards');
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  games.forEach(function(g){
+    var card = el('section', 'card' + (g.files.length ? '' : ' empty'));
+    card.appendChild(el('h2', null, g.name));
+    if (!g.files.length) card.appendChild(el('div', 'none', '아직 올라온 문서가 없습니다'));
+    g.files.forEach(function(f){
+      var a = el('a', 'doc');
+      a.href = 'view.html?f=' + encodeURIComponent(f.id) + hash;
+      a.appendChild(el('span', 't', f.title));
+      a.appendChild(el('span', 'u', f.updated));
+      a.appendChild(el('span', 'open', '열기 →'));
+      card.appendChild(a);
+    });
+    root.appendChild(card);
+  });
+  var html = document.documentElement, btn = document.getElementById('theme');
+  btn.addEventListener('click', function(){
+    var dark = html.getAttribute('data-theme') === 'dark';
+    if (dark) html.removeAttribute('data-theme'); else html.setAttribute('data-theme', 'dark');
+    btn.textContent = dark ? '다크' : '라이트';
+  });
+})();
+</script>
+</body>
+</html>
