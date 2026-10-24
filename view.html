@@ -69,20 +69,149 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
 
   function show(html){
     delete window.LB_ENC; delete window.LB_CATALOG;
+    // 원본이 자체 다크/라이트(data-theme)를 갖고 있으면 그걸 쓰고, 없으면 스타일시트 색만 밝기를 뒤집는다.
+    var themable = /\[data-theme=["']?dark/.test(html);
     document.open(); document.write(html); document.close();
-    addHome();
+    addBar(themable);
   }
 
-  // 원본 페이지 위에 목록으로 돌아가는 버튼을 띄운다. 원본 CSS 에 휘둘리지 않게 인라인 스타일만 쓴다.
-  function addHome(){
-    if (!document.body) return document.addEventListener('DOMContentLoaded', addHome);
+  function pref(v){
+    try { if (v === undefined) return localStorage.getItem('lb-theme'); localStorage.setItem('lb-theme', v); } catch (e) { return null; }
+  }
+
+  // 지금 화면 배경이 어두운지(원본 기준). 배경이 투명하면 밝은 것으로 본다.
+  function looksDark(){
+    var bg = [document.body, document.documentElement].map(function(e){ return getComputedStyle(e).backgroundColor; })
+      .filter(function(c){ return c && !/rgba\(.*,\s*0\)$|transparent/.test(c); })[0];
+    var v = bg && bg.match(/[\d.]+/g);
+    if (!v) return false;
+    return (0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]) / 255 < 0.45;
+  }
+
+  // ── 밝기 뒤집기 ──
+  // 원본 스타일시트의 색 값만 골라 색상·채도는 두고 밝기만 뒤집은 덮어쓰기 시트를 만든다.
+  // 이미지와 인라인 style 색(레벨 색 견본 등)은 건드리지 않으므로 레벨 그림 색이 그대로 남는다.
+  var COLOR_RE = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b|rgba?\([^)]*\)|hsla?\([^)]*\)|\b(?:white|black)\b/gi;
+  var SKIP = /shadow/;   // 그림자는 어두운 채로 둔다(뒤집으면 빛 번짐이 된다)
+
+  function parseColor(c){
+    c = c.toLowerCase();
+    if (c === 'white') return [255, 255, 255, 1];
+    if (c === 'black') return [0, 0, 0, 1];
+    if (c[0] === '#') {
+      var h = c.slice(1);
+      if (h.length <= 4) h = h.split('').map(function(x){ return x + x; }).join('');
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+    }
+    var n = (c.match(/[\d.]+%?/g) || []).map(function(x, i){ return x.slice(-1) === '%' ? parseFloat(x) / 100 * (i < 3 && c[0] === 'r' ? 255 : 1) : parseFloat(x); });
+    if (n.length < 3) return null;
+    if (c[0] === 'h') { var rgb = hslToRgb(n[0] / 360, n[1] > 1 ? n[1] / 100 : n[1], n[2] > 1 ? n[2] / 100 : n[2]); n = rgb.concat(n.slice(3)); }
+    return [n[0], n[1], n[2], n.length > 3 ? n[3] : 1];
+  }
+  function hslToRgb(h, s, l){
+    var q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    return [h + 1 / 3, h, h - 1 / 3].map(function(t){
+      t = (t + 1) % 1;
+      var v = t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p;
+      return Math.round(v * 255);
+    });
+  }
+  function flip(c){
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, h = 0, s = 0;
+    if (d) {
+      s = d / (1 - Math.abs(2 * l - 1));
+      h = (mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
+    }
+    var rgb = hslToRgb(h, s, 0.07 + 0.9 * (1 - l));   // 흰색 → 아주 어두운 회색, 검정 → 거의 흰색
+    return 'rgba(' + rgb.join(',') + ',' + c[3] + ')';
+  }
+  function flipValue(v){
+    return v.replace(COLOR_RE, function(m, at, s){
+      if (s.slice(Math.max(0, at - 4), at) === 'url(') return m;   // url(#id) 참조는 색이 아니다
+      var c = parseColor(m); return c ? flip(c) : m;
+    });
+  }
+
+  function flippedCss(){
+    var out = [':root{color-scheme:dark}'];
+    function walk(rules){
+      for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+        if (r.style && r.selectorText) {
+          var decl = [];
+          for (var j = 0; j < r.style.length; j++) {
+            var p = r.style[j];
+            if (SKIP.test(p)) continue;
+            var v = r.style.getPropertyValue(p);
+            if (!COLOR_RE.test(v)) { COLOR_RE.lastIndex = 0; continue; }
+            COLOR_RE.lastIndex = 0;
+            decl.push(p + ':' + flipValue(v) + (r.style.getPropertyPriority(p) ? ' !important' : ''));
+          }
+          if (decl.length) out.push(r.selectorText + '{' + decl.join(';') + '}');
+        } else if (r.cssRules && r.media) {
+          out.push('@media ' + r.media.mediaText + '{'); walk(r.cssRules); out.push('}');
+        } else if (r.cssRules && r.conditionText) {
+          out.push('@supports ' + r.conditionText + '{'); walk(r.cssRules); out.push('}');
+        }
+      }
+    }
+    for (var k = 0; k < document.styleSheets.length; k++) {
+      var sh = document.styleSheets[k];
+      if (sh.ownerNode && sh.ownerNode.id === 'lb-flip') continue;
+      try { walk(sh.cssRules); } catch (e) { /* 외부 글꼴 시트 등은 읽을 수 없다 — 색이 없으니 건너뛴다 */ }
+    }
+    // 배경·글자색을 정하지 않은 페이지는 브라우저 기본(흰 바탕·검은 글자)을 뒤집어 둔다.
+    var clear = /rgba\(0,\s*0,\s*0,\s*0\)|transparent/;
+    if (clear.test(getComputedStyle(document.documentElement).backgroundColor) && clear.test(getComputedStyle(document.body).backgroundColor)) {
+      out.unshift('html{background-color:' + flip([255, 255, 255, 1]) + '}');
+    }
+    out.unshift('html{color:' + flip(parseColor(getComputedStyle(document.body).color) || [0, 0, 0, 1]) + '}');
+    return out.join('\n');
+  }
+
+  // 원본 페이지 위에 "← 목록" 과 테마 버튼을 띄운다. 원본 CSS 에 휘둘리지 않게 인라인 스타일만 쓴다.
+  function addBar(themable){
+    if (!document.body) return document.addEventListener('DOMContentLoaded', function(){ addBar(themable); });
+    var root = document.documentElement;
+    var font = 'font:500 13px/1 -apple-system,"Segoe UI","Malgun Gothic",sans-serif;';
+    var pill = 'display:inline-flex;align-items:center;padding:9px 14px;border-radius:999px;cursor:pointer;text-decoration:none;' +
+      'box-shadow:0 2px 10px rgba(0,0,0,.3);' + font;
+    var flipSheet = null;
+    function setFlipped(on){
+      if (on && !flipSheet) {
+        flipSheet = document.createElement('style');
+        flipSheet.id = 'lb-flip';
+        flipSheet.textContent = flippedCss();
+        document.head.appendChild(flipSheet);
+      }
+      if (flipSheet) flipSheet.disabled = !on;
+    }
+
+    var bar = document.createElement('div');
+    bar.id = 'lb-bar';
+    bar.setAttribute('style', 'position:fixed;left:16px;bottom:16px;z-index:2147483647;display:flex;gap:8px');
     var a = document.createElement('a');
     a.href = home;
     a.textContent = '← 목록';
-    a.setAttribute('style', 'position:fixed;left:16px;bottom:16px;z-index:2147483647;padding:9px 14px;border-radius:999px;' +
-      'background:#2a78d6;color:#fff;border:1px solid rgba(255,255,255,.45);font:500 13px/1 -apple-system,"Segoe UI","Malgun Gothic",sans-serif;' +
-      'text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.3)');
-    document.body.appendChild(a);
+    a.setAttribute('style', pill + 'background:#2a78d6;color:#fff;border:1px solid rgba(255,255,255,.45)');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('style', pill + 'background:#fff;color:#171a20;border:1px solid rgba(23,26,32,.18)');
+    bar.appendChild(a); bar.appendChild(btn);
+    document.body.appendChild(bar);
+
+    var native = looksDark() ? 'dark' : 'light';
+    var current = native;
+    function apply(mode){
+      current = mode;
+      if (themable) root.setAttribute('data-theme', mode);
+      else setFlipped(mode !== native);
+      btn.textContent = mode === 'dark' ? '라이트로 보기' : '다크로 보기';
+    }
+    var saved = pref();
+    if (saved === 'dark' || saved === 'light') apply(saved); else btn.textContent = native === 'dark' ? '라이트로 보기' : '다크로 보기';
+    btn.addEventListener('click', function(){ var next = current === 'dark' ? 'light' : 'dark'; apply(next); pref(next); });
   }
 
   async function tryOpen(enc, pass, fromLink){
