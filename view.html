@@ -45,7 +45,8 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
   var $ = function(id){ return document.getElementById(id); };
   var id = new URLSearchParams(location.search).get('f') || '';
   var m = /(?:^#|[#&])k=([^&]+)/.exec(location.hash);
-  $('home').href = 'index.html' + (location.hash || '');
+  var home = 'index.html' + (location.hash || '');
+  $('home').href = home;
 
   function store(v){ try { if (v == null) localStorage.removeItem('lb-pass'); else localStorage.setItem('lb-pass', v); } catch (e) {} }
   function saved(){ try { return localStorage.getItem('lb-pass'); } catch (e) { return null; } }
@@ -71,6 +72,19 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
   function show(html){
     delete window.LB_ENC; delete window.LB_CATALOG;
     document.open(); document.write(html); document.close();
+    addHome();
+  }
+
+  // 원본 페이지 위에 목록으로 돌아가는 버튼을 띄운다. 원본 CSS 에 휘둘리지 않게 인라인 스타일만 쓴다.
+  function addHome(){
+    if (!document.body) return document.addEventListener('DOMContentLoaded', addHome);
+    var a = document.createElement('a');
+    a.href = home;
+    a.textContent = '← 목록';
+    a.setAttribute('style', 'position:fixed;left:16px;bottom:16px;z-index:2147483647;padding:9px 14px;border-radius:999px;' +
+      'background:#2a78d6;color:#fff;border:1px solid rgba(255,255,255,.45);font:500 13px/1 -apple-system,"Segoe UI","Malgun Gothic",sans-serif;' +
+      'text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.3)');
+    document.body.appendChild(a);
   }
 
   async function tryOpen(enc, pass, fromLink){
@@ -91,7 +105,7 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
     if (!window.crypto || !crypto.subtle || typeof DecompressionStream === 'undefined') {
       return say('이 브라우저에서는 열 수 없습니다. 최신 Chrome · Safari · Edge 로 열어 주세요.', true);
     }
-    try { await load('catalog.js'); } catch (e) { return say('목록을 불러오지 못했습니다.', true); }
+    try { await load('catalog.js?t=' + Date.now()); } catch (e) { return say('목록을 불러오지 못했습니다.', true); }
     var doc = null;
     ((window.LB_CATALOG || {}).games || []).forEach(function(g){
       g.files.forEach(function(f){ if (f.id === id) doc = {game: g.name, title: f.title, ver: f.ver}; });

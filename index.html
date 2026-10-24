@@ -37,7 +37,9 @@ h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
 .cards{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));margin:22px 0 18px}
 .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 18px 14px;box-shadow:var(--shadow)}
 .card.empty{border-left-color:var(--line)}
-.card h2{margin:0 0 8px;font-size:16px;font-weight:600}
+.card .gh{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.card .ic{width:44px;height:44px;border-radius:10px;flex:none;background:var(--chip);box-shadow:0 0 0 1px var(--line)}
+.card h2{margin:0;font-size:16px;font-weight:600}
 .doc{display:flex;align-items:baseline;gap:10px;padding:9px 10px;margin:0 -10px;border-radius:8px;transition:background .12s}
 .doc + .doc{border-top:1px solid var(--line)}
 .doc:hover{background:var(--card-2)}
@@ -61,18 +63,26 @@ h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
   <div class="cards" id="cards"></div>
   <div class="foot">공유 링크의 비밀번호(<span class="mono">#k=</span>)는 각 문서로 그대로 넘어갑니다.</div>
 </main>
-<script src="catalog.js"></script>
 <script>
 (function(){
   'use strict';
   // 공유 링크의 #k=비밀번호 를 문서 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
   var hash = location.hash || '';
-  var games = (window.LB_CATALOG || {}).games || [];
   var root = document.getElementById('cards');
   function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  games.forEach(function(g){
+  // Pages 는 최대 10분 캐시하므로 목록은 매번 새로 받는다(갱신 직후에도 바로 보이게).
+  var s = document.createElement('script');
+  s.src = 'catalog.js?t=' + Date.now();
+  s.onload = function(){ render((window.LB_CATALOG || {}).games || []); };
+  s.onerror = function(){ root.appendChild(el('div', 'none', '목록을 불러오지 못했습니다. 새로고침해 주세요.')); };
+  document.head.appendChild(s);
+
+  function render(games){ games.forEach(function(g){
     var card = el('section', 'card' + (g.files.length ? '' : ' empty'));
-    card.appendChild(el('h2', null, g.name));
+    var gh = el('div', 'gh');
+    if (g.icon) { var ic = el('img', 'ic'); ic.src = g.icon; ic.alt = ''; ic.width = 44; ic.height = 44; gh.appendChild(ic); }
+    gh.appendChild(el('h2', null, g.name));
+    card.appendChild(gh);
     if (!g.files.length) card.appendChild(el('div', 'none', '아직 올라온 문서가 없습니다'));
     g.files.forEach(function(f){
       var a = el('a', 'doc');
@@ -83,7 +93,7 @@ h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
       card.appendChild(a);
     });
     root.appendChild(card);
-  });
+  }); }
   var html = document.documentElement, btn = document.getElementById('theme');
   btn.addEventListener('click', function(){
     var dark = html.getAttribute('data-theme') === 'dark';
