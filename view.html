@@ -7,12 +7,10 @@
 <title>레벨 밸런스</title>
 <style>
 /* 복호화 대기 화면. 성공하면 문서 전체가 원본 HTML 로 바뀐다. */
+/* 목록 화면(index.html)과 같은 어두운 무대 색 */
 :root{
-  color-scheme:light dark;
-  --bg:#f3f4f7; --card:#ffffff; --line:#dfe3ea; --ink:#171a20; --ink-2:#4a5160; --ink-3:#7b8494; --accent:#2a78d6; --bad:#c2410c;
-}
-@media (prefers-color-scheme:dark){
-  :root{ --bg:#14161b; --card:#1c1f26; --line:#2c313b; --ink:#e6e9ef; --ink-2:#aab2bf; --ink-3:#7c8594; --accent:#4f8ef7; --bad:#f97316; }
+  color-scheme:dark;
+  --bg:#101119; --card:#1b1d29; --line:#2a2d3c; --ink:#f4f5fa; --ink-2:#b4b8c8; --ink-3:#80849a; --accent:#4f8ef7; --bad:#ff8a5c;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;min-height:100%}

@@ -4,102 +4,274 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#101119">
 <title>그룹 1 레벨 밸런스</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
 <style>
-/* 게임 선택 화면. 팔레트는 grp1-ab-board 와 같다(라이트 기본, 다크 토글). */
+/* 게임 선택 화면. 히어로는 고른 게임의 앱 아이콘으로 물들고, 강조색도 그 아이콘에서 뽑는다. */
 :root{
-  color-scheme:light;
-  --bg:#f3f4f7; --card:#ffffff; --card-2:#f6f7fa; --line:#dfe3ea;
-  --ink:#171a20; --ink-2:#4a5160; --ink-3:#7b8494;
-  --accent:#2a78d6;
-  --chip:#eef0f4; --shadow:0 1px 2px rgba(20,26,40,.08);
-  --font:"IBM Plex Sans",-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
-  --mono:"IBM Plex Mono",Consolas,"Malgun Gothic",monospace;
-}
-:root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#14161b; --card:#1c1f26; --card-2:#22262e; --line:#2c313b;
-  --ink:#e6e9ef; --ink-2:#aab2bf; --ink-3:#7c8594;
-  --accent:#4f8ef7;
-  --chip:#22262e; --shadow:0 1px 0 rgba(0,0,0,.35);
+  --stage:#101119; --stage-0:rgba(16,17,25,0); --surface:#1b1d29;
+  --ink:#f4f5fa; --ink-2:#b4b8c8; --ink-3:#80849a;
+  --accent:#8aa2ff;   /* 히어로 게임 아이콘에서 뽑은 색으로 바뀐다 */
+  --gutter:clamp(16px,4vw,56px);
+  --kr:"IBM Plex Sans KR",-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --game:"Fredoka","IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);min-height:100%}
+html,body{margin:0;background:var(--stage);color:var(--ink);font:15px/1.55 var(--kr);-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:900px;margin:0 auto;padding:48px 24px 40px}
-.head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
-.sub{color:var(--ink-3);font-size:12.5px}
-.theme{margin-left:auto;background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:5px 10px;color:var(--ink-2);font:inherit;font-size:12px;cursor:pointer}
-.theme:hover{color:var(--ink);border-color:var(--ink-3)}
-.cards{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));margin:22px 0 18px}
-.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 18px 14px;box-shadow:var(--shadow)}
-.card.empty{border-left-color:var(--line)}
-.card .gh{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.card .ic{width:44px;height:44px;border-radius:10px;flex:none;background:var(--chip);box-shadow:0 0 0 1px var(--line)}
-.card h2{margin:0;font-size:16px;font-weight:600}
-.doc{display:flex;align-items:baseline;gap:10px;padding:9px 10px;margin:0 -10px;border-radius:8px;transition:background .12s}
-.doc + .doc{border-top:1px solid var(--line)}
-.doc:hover{background:var(--card-2)}
-.doc .t{font-weight:500}
-.doc .u{margin-left:auto;color:var(--ink-3);font-size:11.5px;font-family:var(--mono);white-space:nowrap}
-.doc .open{color:var(--accent);font-weight:500;font-size:12.5px;white-space:nowrap}
-.none{color:var(--ink-3);font-size:12.5px;padding:4px 0}
-.foot{margin-top:16px;color:var(--ink-3);font-size:11.5px}
-.mono{font-family:var(--mono)}
-@media (max-width:520px){ .wrap{padding:28px 16px 32px} }
+:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+
+.bar{position:absolute;inset:0 0 auto;z-index:5;padding:22px var(--gutter);background:linear-gradient(to bottom,rgba(16,17,25,.75),var(--stage-0))}
+.brand{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+
+/* 히어로: 색 번짐(흐린 아이콘) → 큰 아이콘 → 어둠 그라데이션 → 글 */
+.stage{position:relative;height:clamp(440px,64vh,640px);overflow:hidden;isolation:isolate}
+.layer{position:absolute;inset:0;opacity:0;transition:opacity .7s var(--ease)}
+.layer.on{opacity:1}
+.wash{position:absolute;inset:-20%;background-size:cover;background-position:center;filter:blur(90px) saturate(1.4) brightness(.55)}
+.art{position:absolute;top:0;right:0;height:100%;aspect-ratio:1;object-fit:cover;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 42%);mask-image:linear-gradient(90deg,transparent 0%,#000 42%)}
+.shade{position:absolute;inset:0;z-index:2;pointer-events:none;background:
+  linear-gradient(90deg,var(--stage) 0%,rgba(16,17,25,.9) 30%,rgba(16,17,25,.3) 56%,var(--stage-0) 74%),
+  linear-gradient(0deg,var(--stage) 0%,var(--stage-0) 40%)}
+.copy{position:absolute;z-index:3;left:var(--gutter);bottom:clamp(84px,13vh,128px);max-width:min(600px,58vw);
+  opacity:0;transform:translateY(12px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.ready .copy{opacity:1;transform:none}
+.ready .copy.swap{opacity:0;transform:translateY(4px)}
+.when{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;color:var(--ink-2);font-size:14px}
+.fresh{background:var(--accent);color:#12131a;font-weight:600;font-size:12.5px;line-height:1;padding:5px 10px;border-radius:999px;transition:background .6s}
+.name{margin:0;font:700 clamp(42px,6.6vw,92px)/.96 var(--game);letter-spacing:-.015em;text-wrap:balance}
+.doc{margin:14px 0 28px;font-size:clamp(16px,1.6vw,20px);font-weight:500;color:var(--ink-2)}
+.play{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#12131a;font-weight:600;font-size:16px;
+  padding:13px 28px 13px 22px;border-radius:8px;box-shadow:0 10px 36px -10px var(--accent);transition:transform .15s,box-shadow .6s}
+.play:hover{transform:scale(1.03)}
+.play svg{width:16px;height:16px;flex:none}
+.oops{position:absolute;z-index:3;left:var(--gutter);bottom:96px;color:var(--ink-2)}
+
+/* 포스터 줄: 최근 갱신순. 히어로 아래쪽에 살짝 걸친다 */
+.row{position:relative;z-index:4;margin-top:-44px;padding-bottom:28px}
+.row h3{margin:0;padding:0 var(--gutter);font-size:18px;font-weight:600}
+.rail-wrap{position:relative}
+.rail{display:flex;gap:clamp(14px,1.6vw,22px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gutter);
+  padding:16px var(--gutter) 20px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.poster{flex:none;width:clamp(140px,13vw,200px);scroll-snap-align:start;border-radius:12px}
+.pic{position:relative;display:block;aspect-ratio:1;border-radius:22%;background:var(--surface);
+  transition:transform .25s var(--ease),box-shadow .25s}
+.pic img{display:block;width:100%;height:100%;border-radius:inherit}
+.poster:hover .pic,.poster:focus-visible .pic{transform:scale(1.05)}
+.poster.sel .pic{box-shadow:0 0 0 3px var(--stage),0 0 0 6px var(--c,var(--accent))}
+.poster:focus-visible{outline:none}
+.poster:focus-visible .t{text-decoration:underline;text-underline-offset:4px}
+.badge{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);white-space:nowrap;background:var(--c,var(--accent));
+  color:#12131a;font-weight:600;font-size:12px;line-height:1;padding:5px 10px;border-radius:999px;box-shadow:0 0 0 3px var(--stage)}
+.t{display:block;margin-top:16px;font:600 17px/1.2 var(--game)}
+.m{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;font-size:13px;color:var(--ink-3)}
+.poster.off{opacity:.45;pointer-events:none}
+.nav{position:absolute;top:16px;bottom:20px;z-index:2;width:var(--gutter);min-width:40px;border:0;padding:0;cursor:pointer;
+  color:#fff;font:400 34px/1 var(--kr);background:rgba(16,17,25,.72)}
+.nav.prev{left:0;border-radius:0 10px 10px 0} .nav.next{right:0;border-radius:10px 0 0 10px}
+.nav:hover{background:rgba(16,17,25,.9)}
+.nav[hidden]{display:none}
+
+.foot{padding:4px var(--gutter) 36px;color:var(--ink-3);font-size:12.5px}
+
+@media (hover:none){ .nav{display:none} }
+@media (max-width:640px){
+  .stage{height:min(80vh,620px)}
+  .art{height:auto;width:100%;-webkit-mask-image:linear-gradient(180deg,#000 50%,transparent 100%);mask-image:linear-gradient(180deg,#000 50%,transparent 100%)}
+  .shade{background:linear-gradient(0deg,var(--stage) 0%,rgba(16,17,25,.88) 36%,var(--stage-0) 68%)}
+  .copy{right:var(--gutter);bottom:64px;max-width:none}
+  .row{margin-top:-28px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
 </head>
 <body>
-<main class="wrap">
-  <div class="head">
-    <h1>그룹 1 레벨 밸런스</h1>
-    <span class="sub">게임별 레벨 도감 · 밸런스 카탈로그</span>
-    <button class="theme" id="theme" type="button">다크</button>
+<header class="bar"><h1 class="brand">그룹 1 레벨 밸런스</h1></header>
+
+<section class="stage" id="stage">
+  <div id="layers"></div>
+  <div class="shade"></div>
+  <div class="copy" id="copy">
+    <p class="when"><span class="fresh" id="fresh" hidden>새로 갱신</span><span id="ago"></span></p>
+    <h2 class="name" id="name"></h2>
+    <p class="doc" id="doc"></p>
+    <a class="play" id="play" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>도감 열기</a>
   </div>
-  <div class="sub">문서를 누르면 원본 HTML 이 그대로 열립니다. 시각은 원본 파일 기준(한국 시간)입니다.</div>
-  <div class="cards" id="cards"></div>
-  <div class="foot">공유 링크의 비밀번호(<span class="mono">#k=</span>)는 각 문서로 그대로 넘어갑니다.</div>
-</main>
+</section>
+
+<section class="row" aria-labelledby="row-title">
+  <h3 id="row-title">최근 갱신순</h3>
+  <div class="rail-wrap">
+    <button class="nav prev" id="prev" type="button" aria-label="앞쪽 게임 보기" hidden>‹</button>
+    <div class="rail" id="rail"></div>
+    <button class="nav next" id="next" type="button" aria-label="뒤쪽 게임 보기" hidden>›</button>
+  </div>
+</section>
+
+<footer class="foot">공유 링크의 비밀번호(#k=)는 각 도감으로 그대로 넘어갑니다.</footer>
+
 <script>
 (function(){
   'use strict';
-  // 공유 링크의 #k=비밀번호 를 문서 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
+  // 공유 링크의 #k=비밀번호 를 도감 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
   var hash = location.hash || '';
-  var root = document.getElementById('cards');
+  var $ = function(id){ return document.getElementById(id); };
+  var stage = $('stage'), rail = $('rail'), copy = $('copy');
+  var canHover = matchMedia('(hover: hover)').matches;
+  var DAY = 864e5;
+  var items = [], cur = -1, swapTimer = 0;
+
   function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function docHref(it){ return 'view.html?f=' + encodeURIComponent(it.f.id) + hash; }
+  function fresh(it){ return Date.now() - it.f.ts < DAY; }
+  function ago(it){
+    var min = (Date.now() - it.f.ts) / 6e4;
+    if (min < 1) return '방금';
+    if (min < 60) return Math.floor(min) + '분 전';
+    if (min < 1440) return Math.floor(min / 60) + '시간 전';
+    if (min < 2880) return '어제';
+    if (min < 10080) return Math.floor(min / 1440) + '일 전';
+    return it.f.updated;
+  }
+
+  // 아이콘에서 가장 많이 쓰인 선명한 색을 뽑아 어두운 배경에서 잘 보이는 밝기로 맞춘다.
+  function accentOf(img){
+    try {
+      var n = 36, c = document.createElement('canvas'); c.width = c.height = n;
+      var x = c.getContext('2d', {willReadFrequently: true}); x.drawImage(img, 0, 0, n, n);
+      var d = x.getImageData(0, 0, n, n).data, bins = [], i, k;
+      for (k = 0; k < 18; k++) bins.push({w: 0, h: 0, s: 0});
+      for (i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 200) continue;
+        var r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, dl = mx - mn;
+        if (!dl) continue;
+        var s = dl / (1 - Math.abs(2 * l - 1));
+        if (s < .4 || l < .25 || l > .8) continue;
+        var h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
+        h /= 6;
+        var bin = bins[Math.floor(h * 18) % 18], w = s * s;
+        bin.w += w; bin.h += h * w; bin.s += s * w;
+      }
+      var best = bins.reduce(function(a, z){ return z.w > a.w ? z : a; });
+      if (!best.w) return null;
+      return 'hsl(' + Math.round(best.h / best.w * 360) + ' ' + Math.round(Math.max(.75, best.s / best.w) * 100) + '% 68%)';
+    } catch (e) { return null; }
+  }
+
+  function paintAccent(){
+    var it = items[cur];
+    if (it && it.color) document.documentElement.style.setProperty('--accent', it.color);
+  }
+
+  function fill(it){
+    $('fresh').hidden = !fresh(it);
+    $('ago').textContent = ago(it) + ' 갱신';
+    $('ago').title = it.f.updated + ' (한국 시간)';
+    $('name').textContent = it.g.name;
+    $('doc').textContent = it.f.title;
+    $('play').href = docHref(it);
+  }
+
+  function show(i){
+    if (i === cur || !items[i]) return;
+    var first = cur < 0;
+    if (!first) { items[cur].layer.classList.remove('on'); items[cur].poster.classList.remove('sel'); }
+    cur = i;
+    var it = items[i];
+    if (!it.art.src && it.g.art) it.art.src = it.g.art;
+    it.layer.classList.add('on');
+    it.poster.classList.add('sel');
+    paintAccent();
+    if (first) return fill(it);
+    clearTimeout(swapTimer);
+    copy.classList.add('swap');
+    swapTimer = setTimeout(function(){ fill(it); copy.classList.remove('swap'); }, 160);
+  }
+
+  function reveal(){
+    if (stage.classList.contains('ready')) return;
+    stage.classList.add('ready');
+    // 첫 화면이 뜬 뒤 나머지 큰 그림을 미리 받아 둔다(마우스를 올렸을 때 바로 바뀌도록).
+    setTimeout(function(){ items.forEach(function(it){ if (!it.art.src && it.g.art) it.art.src = it.g.art; }); }, 400);
+  }
+
+  function arrows(){
+    $('prev').hidden = rail.scrollLeft < 8;
+    $('next').hidden = rail.scrollLeft + rail.clientWidth > rail.scrollWidth - 8;
+  }
+
+  function build(games){
+    var withDoc = games.filter(function(g){ return g.files.length; })
+      .map(function(g){ return {g: g, f: g.files[0]}; })
+      .sort(function(a, b){ return b.f.ts - a.f.ts; });
+    withDoc.forEach(function(it, i){
+      it.layer = el('div', 'layer');
+      var wash = el('div', 'wash');
+      if (it.g.icon) wash.style.backgroundImage = 'url("' + encodeURI(it.g.icon) + '")';
+      it.art = el('img', 'art'); it.art.alt = ''; it.art.decoding = 'async';
+      it.layer.appendChild(wash); it.layer.appendChild(it.art);
+      $('layers').appendChild(it.layer);
+
+      var a = it.poster = el('a', 'poster');
+      a.href = docHref(it);
+      a.setAttribute('aria-label', it.g.name + ' ' + it.f.title + ' 열기');
+      var pic = el('span', 'pic'), img = el('img');
+      img.alt = ''; img.width = img.height = 200; img.decoding = 'async';
+      img.onload = function(){
+        it.color = accentOf(img);
+        if (it.color) a.style.setProperty('--c', it.color);
+        if (i === cur) paintAccent();
+        if (i === 0) reveal();
+      };
+      img.onerror = function(){ if (i === 0) reveal(); };
+      if (it.g.icon) img.src = it.g.icon;
+      pic.appendChild(img);
+      if (fresh(it)) pic.appendChild(el('span', 'badge', '새로 갱신'));
+      a.appendChild(pic);
+      a.appendChild(el('span', 't', it.g.name));
+      var m = el('span', 'm');
+      m.appendChild(el('span', null, it.f.title.replace(/^레벨 도감\s*/, '레벨 ')));
+      m.appendChild(el('span', null, ago(it)));
+      a.appendChild(m);
+      a.addEventListener('mouseenter', function(){ show(i); });
+      a.addEventListener('focus', function(){ show(i); });
+      // 터치 화면: 첫 탭은 히어로에 띄우고, 이미 띄운 포스터를 다시 탭하면 연다.
+      a.addEventListener('click', function(e){ if (!canHover && cur !== i) { e.preventDefault(); show(i); } });
+      rail.appendChild(a);
+    });
+    items = withDoc;
+    // 아직 도감이 없는 게임은 줄 끝에 흐리게 둔다.
+    games.filter(function(g){ return !g.files.length; }).forEach(function(g){
+      var p = el('div', 'poster off'), pic = el('span', 'pic');
+      if (g.icon) { var img = el('img'); img.src = g.icon; img.alt = ''; pic.appendChild(img); }
+      p.appendChild(pic); p.appendChild(el('span', 't', g.name)); p.appendChild(el('span', 'm', '아직 도감 없음'));
+      rail.appendChild(p);
+    });
+    if (!items.length) { stage.appendChild(el('p', 'oops', '아직 올라온 도감이 없습니다.')); return; }
+    show(0);
+    setTimeout(reveal, 1500);   // 아이콘이 늦어도 1.5초 뒤엔 보여 준다
+    arrows();
+  }
+
+  rail.addEventListener('scroll', arrows, {passive: true});
+  window.addEventListener('resize', arrows);
+  $('prev').addEventListener('click', function(){ rail.scrollBy({left: -rail.clientWidth * .8, behavior: 'smooth'}); });
+  $('next').addEventListener('click', function(){ rail.scrollBy({left: rail.clientWidth * .8, behavior: 'smooth'}); });
+
   // Pages 는 최대 10분 캐시하므로 목록은 매번 새로 받는다(갱신 직후에도 바로 보이게).
   var s = document.createElement('script');
   s.src = 'catalog.js?t=' + Date.now();
-  s.onload = function(){ render((window.LB_CATALOG || {}).games || []); };
-  s.onerror = function(){ root.appendChild(el('div', 'none', '목록을 불러오지 못했습니다. 새로고침해 주세요.')); };
+  s.onload = function(){ build((window.LB_CATALOG || {}).games || []); };
+  s.onerror = function(){ stage.appendChild(el('p', 'oops', '목록을 불러오지 못했습니다. 새로고침해 주세요.')); };
   document.head.appendChild(s);
-
-  function render(games){ games.forEach(function(g){
-    var card = el('section', 'card' + (g.files.length ? '' : ' empty'));
-    var gh = el('div', 'gh');
-    if (g.icon) { var ic = el('img', 'ic'); ic.src = g.icon; ic.alt = ''; ic.width = 44; ic.height = 44; gh.appendChild(ic); }
-    gh.appendChild(el('h2', null, g.name));
-    card.appendChild(gh);
-    if (!g.files.length) card.appendChild(el('div', 'none', '아직 올라온 문서가 없습니다'));
-    g.files.forEach(function(f){
-      var a = el('a', 'doc');
-      a.href = 'view.html?f=' + encodeURIComponent(f.id) + hash;
-      a.appendChild(el('span', 't', f.title));
-      a.appendChild(el('span', 'u', f.updated));
-      a.appendChild(el('span', 'open', '열기 →'));
-      card.appendChild(a);
-    });
-    root.appendChild(card);
-  }); }
-  var html = document.documentElement, btn = document.getElementById('theme');
-  btn.addEventListener('click', function(){
-    var dark = html.getAttribute('data-theme') === 'dark';
-    if (dark) html.removeAttribute('data-theme'); else html.setAttribute('data-theme', 'dark');
-    btn.textContent = dark ? '다크' : '라이트';
-  });
 })();
 </script>
 </body>
