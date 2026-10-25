@@ -102,7 +102,7 @@ a{color:inherit;text-decoration:none}
     <p class="when"><span class="fresh" id="fresh" hidden>새로 갱신</span><span id="ago"></span></p>
     <h2 class="name" id="name"></h2>
     <p class="doc" id="doc"></p>
-    <a class="play" id="play" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>도감 열기</a>
+    <a class="play" id="play" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>카탈로그 열기</a>
   </div>
 </section>
 
@@ -115,12 +115,12 @@ a{color:inherit;text-decoration:none}
   </div>
 </section>
 
-<footer class="foot">공유 링크의 비밀번호(#k=)는 각 도감으로 그대로 넘어갑니다.</footer>
+<footer class="foot">공유 링크의 비밀번호(#k=)는 각 카탈로그로 그대로 넘어갑니다.</footer>
 
 <script>
 (function(){
   'use strict';
-  // 공유 링크의 #k=비밀번호 를 도감 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
+  // 공유 링크의 #k=비밀번호 를 카탈로그 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
   var hash = location.hash || '';
   var $ = function(id){ return document.getElementById(id); };
   var stage = $('stage'), rail = $('rail'), copy = $('copy');
@@ -238,7 +238,7 @@ a{color:inherit;text-decoration:none}
       a.appendChild(pic);
       a.appendChild(el('span', 't', it.g.name));
       var m = el('span', 'm');
-      m.appendChild(el('span', null, it.f.title.replace(/^레벨 도감\s*/, '레벨 ')));
+      m.appendChild(el('span', null, it.f.title.replace(/^레벨 카탈로그\s*/, '레벨 ')));
       m.appendChild(el('span', null, ago(it)));
       a.appendChild(m);
       a.addEventListener('mouseenter', function(){ show(i); });
@@ -248,14 +248,14 @@ a{color:inherit;text-decoration:none}
       rail.appendChild(a);
     });
     items = withDoc;
-    // 아직 도감이 없는 게임은 줄 끝에 흐리게 둔다.
+    // 아직 카탈로그가 없는 게임은 줄 끝에 흐리게 둔다.
     games.filter(function(g){ return !g.files.length; }).forEach(function(g){
       var p = el('div', 'poster off'), pic = el('span', 'pic');
       if (g.icon) { var img = el('img'); img.src = g.icon; img.alt = ''; pic.appendChild(img); }
-      p.appendChild(pic); p.appendChild(el('span', 't', g.name)); p.appendChild(el('span', 'm', '아직 도감 없음'));
+      p.appendChild(pic); p.appendChild(el('span', 't', g.name)); p.appendChild(el('span', 'm', '아직 카탈로그 없음'));
       rail.appendChild(p);
     });
-    if (!items.length) { stage.appendChild(el('p', 'oops', '아직 올라온 도감이 없습니다.')); return; }
+    if (!items.length) { stage.appendChild(el('p', 'oops', '아직 올라온 카탈로그가 없습니다.')); return; }
     show(0);
     setTimeout(reveal, 1500);   // 아이콘이 늦어도 1.5초 뒤엔 보여 준다
     arrows();
