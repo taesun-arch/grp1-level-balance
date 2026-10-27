@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#101119">
+<title>GRP1 밸런스 기준</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 밸런스 탭. 맨 위는 항상 GRP1 기준 문서, 아래는 게임별 적용 리포트(최근 갱신순). 색·글꼴은 index.html 과 같다. */
+:root{
+  color-scheme:dark;
+  --stage:#101119; --stage-0:rgba(16,17,25,0); --surface:#1b1d29; --surface-2:#232636;
+  --ink:#f4f5fa; --ink-2:#b4b8c8; --ink-3:#80849a;
+  --accent:#b3a6ff;   /* 기준 문서(연보라) 색. 게임 카드는 각자 아이콘에서 뽑은 --c 를 쓴다 */
+  --gutter:clamp(16px,4vw,56px);
+  --kr:"IBM Plex Sans KR",-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --game:"Fredoka","IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--stage);color:var(--ink);font:15px/1.55 var(--kr);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+
+.bar{position:absolute;inset:0 0 auto;z-index:5;padding:22px var(--gutter);background:linear-gradient(to bottom,rgba(16,17,25,.75),var(--stage-0));
+  display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{margin:0;min-width:0;font-size:20px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 카탈로그 ↔ 밸런스 탭 (index.html 과 같은 모양) */
+.tabs{flex:none;display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.09);font-size:13.5px;font-weight:500}
+.tabs a{padding:6px 14px;border-radius:999px;color:var(--ink-2);white-space:nowrap;transition:color .15s}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current]{background:#fff;color:#12131a;font-weight:600}
+
+/* 히어로: 적용 게임 아이콘의 색 번짐 → 어둠 그라데이션 → 글 · 오른쪽에 적용 게임 아이콘 부채 */
+.stage{position:relative;min-height:clamp(420px,60vh,580px);display:flex;align-items:flex-end;overflow:hidden;isolation:isolate;
+  padding:110px var(--gutter) clamp(64px,10vh,96px)}
+.wash{position:absolute;inset:0;z-index:-2;background:radial-gradient(45% 60% at 75% 45%,rgba(122,104,255,.45),transparent 70%)}
+.blob{position:absolute;width:42%;aspect-ratio:1;border-radius:50%;background-size:cover;background-position:center;
+  filter:blur(80px) saturate(1.4) brightness(.6);opacity:.9}
+.blob:nth-child(1){right:22%;top:0} .blob:nth-child(2){right:-4%;top:-12%} .blob:nth-child(3){right:6%;top:38%}
+.shade{position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+  linear-gradient(90deg,var(--stage) 0%,rgba(16,17,25,.88) 32%,rgba(16,17,25,.25) 62%,var(--stage-0) 80%),
+  linear-gradient(0deg,var(--stage) 0%,var(--stage-0) 38%)}
+.copy{position:relative;max-width:min(620px,56vw);opacity:0;transform:translateY(12px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.ready .copy,.ready .fan{opacity:1;transform:none}
+.when{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;color:var(--ink-2);font-size:14px}
+.pill{background:var(--accent);color:#15131f;font-weight:600;font-size:12.5px;line-height:1;padding:5px 10px;border-radius:999px}
+.name{margin:0;font:700 clamp(40px,6vw,80px)/1.02 var(--kr);letter-spacing:-.025em;text-wrap:balance;word-break:keep-all}
+.doc{margin:14px 0 28px;font-size:clamp(16px,1.6vw,20px);font-weight:500;color:var(--ink-2)}
+.play{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#12131a;font-weight:600;font-size:16px;
+  padding:13px 28px 13px 22px;border-radius:8px;box-shadow:0 10px 36px -10px var(--accent);transition:transform .15s}
+.play:hover{transform:scale(1.03)}
+.play svg{width:16px;height:16px;flex:none}
+.oops{color:var(--ink-2)}
+
+.fan{position:absolute;right:calc(var(--gutter) + 3vw);top:52%;width:clamp(230px,25vw,350px);aspect-ratio:1.45;
+  opacity:0;transform:translateY(-44%);transition:opacity .5s var(--ease) .1s}
+.ready .fan{transform:translateY(-50%)}
+.fan img{position:absolute;top:16%;width:46%;height:auto;aspect-ratio:1;border-radius:22%;background:var(--surface);box-shadow:0 14px 36px rgba(0,0,0,.5)}
+.fan img:nth-child(1){left:0;transform:rotate(-10deg)}
+.fan img:nth-child(2){left:27%;top:0;z-index:2}
+.fan img:nth-child(3){left:54%;transform:rotate(10deg)}
+.fan figcaption{position:absolute;left:0;right:0;bottom:-6px;text-align:center;color:var(--ink-2);font-size:13.5px}
+
+/* 게임별 리포트 카드 */
+.sec{position:relative;z-index:4;margin-top:-36px;padding:0 var(--gutter) 30px}
+.sec h3{margin:0 0 16px;font-size:18px;font-weight:600}
+.sec h3 small{margin-left:10px;color:var(--ink-3);font-size:13.5px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:clamp(12px,1.4vw,18px)}
+.card{position:relative;display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:var(--surface);
+  transition:background .2s,box-shadow .2s}
+.card:hover{background:var(--surface-2);box-shadow:0 0 0 2px var(--c,var(--accent))}
+.card .pic{flex:none;width:72px;height:72px;border-radius:22%;background:var(--surface-2);transition:transform .25s var(--ease)}
+.card:hover .pic{transform:scale(1.05)}
+.card .txt{min-width:0}
+.card .t{display:block;font:600 17px/1.2 var(--game)}
+.card .m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:4px;font-size:13px;color:var(--ink-3)}
+.badge{background:var(--c,var(--accent));color:#12131a;font-weight:600;font-size:11.5px;line-height:1;padding:4px 8px;border-radius:999px}
+.open::after{content:"";position:absolute;inset:0;border-radius:16px}   /* 카드 전체가 리포트 링크 */
+.open:focus-visible{outline:none}
+.open:focus-visible::after{outline:2px solid var(--c,var(--accent));outline-offset:3px}
+.cat{position:relative;z-index:1;display:inline-block;margin-top:6px;font-size:13px;font-weight:500;color:var(--c,var(--accent))}
+.cat:hover{text-decoration:underline;text-underline-offset:3px}
+.card.off{opacity:.42}
+
+.foot{padding:4px var(--gutter) 36px;color:var(--ink-3);font-size:12.5px}
+
+@media (max-width:640px){
+  .bar{padding:18px var(--gutter)}
+  .brand{font-size:17px}
+  .tabs{font-size:12.5px} .tabs a{padding:5px 11px}
+  .stage{flex-direction:column;align-items:stretch;justify-content:flex-end;min-height:0;padding:84px var(--gutter) 60px}
+  .shade{background:linear-gradient(0deg,var(--stage) 0%,rgba(16,17,25,.82) 45%,rgba(16,17,25,.2) 100%)}
+  .blob{width:70%} .blob:nth-child(1){right:40%} .blob:nth-child(3){right:10%;top:20%}
+  .fan{position:relative;right:auto;top:auto;align-self:center;width:min(250px,68vw);margin:0 0 30px;transform:translateY(8px)}
+  .ready .fan{transform:none}
+  .copy{max-width:none}
+  .play{width:100%;justify-content:center}
+  .sec{margin-top:-20px}
+  .grid{grid-template-columns:1fr 1fr;gap:10px}
+  .card{flex-direction:column;align-items:flex-start;gap:10px;padding:12px}
+  .card .pic{width:56px;height:56px}
+  .card .t{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1 class="brand">GRP1 밸런스 기준</h1>
+  <nav class="tabs" aria-label="보드 전환"><a href="index.html">카탈로그</a><a href="balance.html" aria-current="page">밸런스</a></nav>
+</header>
+
+<section class="stage" id="stage">
+  <div class="wash" id="wash"></div>
+  <div class="shade"></div>
+  <figure class="fan" id="fan" hidden><figcaption id="applied"></figcaption></figure>
+  <div class="copy" id="copy">
+    <p class="when"><span class="pill">기준 문서</span><span id="ago"></span></p>
+    <h2 class="name" id="name"></h2>
+    <p class="doc" id="doc"></p>
+    <a class="play" id="play" href="#" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>기준 문서 열기</a>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="sec-title">
+  <h3 id="sec-title">게임별 적용 리포트<small>최근 갱신순</small></h3>
+  <div class="grid" id="grid"></div>
+</section>
+
+<footer class="foot">공유 링크의 비밀번호(#k=)는 각 문서로 그대로 넘어갑니다.</footer>
+
+<script>
+(function(){
+  'use strict';
+  // 공유 링크의 #k=비밀번호 를 문서·탭 링크에 그대로 넘긴다(# 뒤는 서버로 가지 않는다).
+  var hash = location.hash || '';
+  var $ = function(id){ return document.getElementById(id); };
+  var stage = $('stage');
+  var DAY = 864e5;
+  document.querySelectorAll('.tabs a').forEach(function(a){ a.href = a.getAttribute('href') + hash; });
+
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function docHref(f){ return 'view.html?f=' + encodeURIComponent(f.id) + hash; }
+  function fresh(f){ return Date.now() - f.ts < DAY; }
+  function ago(f){
+    var min = (Date.now() - f.ts) / 6e4;
+    if (min < 1) return '방금';
+    if (min < 60) return Math.floor(min) + '분 전';
+    if (min < 1440) return Math.floor(min / 60) + '시간 전';
+    if (min < 2880) return '어제';
+    if (min < 10080) return Math.floor(min / 1440) + '일 전';
+    return f.updated;
+  }
+
+  // 아이콘에서 가장 많이 쓰인 선명한 색을 뽑아 어두운 배경에서 잘 보이는 밝기로 맞춘다(index.html 과 같은 방식).
+  function accentOf(img){
+    try {
+      var n = 36, c = document.createElement('canvas'); c.width = c.height = n;
+      var x = c.getContext('2d', {willReadFrequently: true}); x.drawImage(img, 0, 0, n, n);
+      var d = x.getImageData(0, 0, n, n).data, bins = [], i, k;
+      for (k = 0; k < 18; k++) bins.push({w: 0, h: 0, s: 0});
+      for (i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 200) continue;
+        var r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, dl = mx - mn;
+        if (!dl) continue;
+        var s = dl / (1 - Math.abs(2 * l - 1));
+        if (s < .4 || l < .25 || l > .8) continue;
+        var h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
+        h /= 6;
+        var bin = bins[Math.floor(h * 18) % 18], w = s * s;
+        bin.w += w; bin.h += h * w; bin.s += s * w;
+      }
+      var best = bins.reduce(function(a, z){ return z.w > a.w ? z : a; });
+      if (!best.w) return null;
+      return 'hsl(' + Math.round(best.h / best.w * 360) + ' ' + Math.round(Math.max(.75, best.s / best.w) * 100) + '% 68%)';
+    } catch (e) { return null; }
+  }
+
+  function hero(guide, reps){
+    if (!guide) {
+      $('name').textContent = 'GRP1 밸런스 기준';
+      $('doc').textContent = '기준 문서가 아직 올라오지 않았습니다.';
+      $('ago').textContent = '';
+      return;
+    }
+    $('ago').textContent = ago(guide) + ' 갱신';
+    $('ago').title = guide.updated + ' (한국 시간)';
+    $('name').textContent = guide.title;
+    $('doc').textContent = guide.sub || '';
+    $('play').href = docHref(guide);
+    $('play').hidden = false;
+    // 최근 갱신된 리포트 게임 셋의 아이콘으로 부채와 색 번짐을 만든다.
+    var top = reps.slice(0, 3);
+    if (!top.length) return;
+    top.forEach(function(it){
+      if (!it.g.icon) return;
+      var b = el('div', 'blob'); b.style.backgroundImage = 'url("' + encodeURI(it.g.icon) + '")';
+      $('wash').appendChild(b);
+      var img = el('img'); img.src = it.g.icon; img.alt = ''; img.width = img.height = 160;
+      $('fan').insertBefore(img, $('applied'));
+    });
+    $('applied').textContent = reps.length + '개 게임에 적용 중';
+    $('fan').hidden = false;
+  }
+
+  function card(it){
+    var c = el('div', 'card');
+    var pic = el('img', 'pic'); pic.alt = ''; pic.width = pic.height = 72; pic.decoding = 'async';
+    pic.onload = function(){ var col = accentOf(pic); if (col) c.style.setProperty('--c', col); };
+    if (it.g.icon) pic.src = it.g.icon;
+    c.appendChild(pic);
+    var txt = el('div', 'txt');
+    var a = el('a', 'open t', it.g.name);
+    a.href = docHref(it.r);
+    a.setAttribute('aria-label', it.g.name + ' ' + it.r.title + ' 열기');
+    txt.appendChild(a);
+    var m = el('span', 'm');
+    if (fresh(it.r)) m.appendChild(el('span', 'badge', '새로 갱신'));
+    var when = el('span', null, ago(it.r)); when.title = it.r.updated + ' 갱신 (한국 시간)';
+    m.appendChild(when);
+    txt.appendChild(m);
+    // 같은 게임의 레벨 카탈로그가 있으면 바로 가는 링크
+    if (it.g.files.length) {
+      var cat = el('a', 'cat', '레벨 카탈로그 →');
+      cat.href = docHref(it.g.files[0]);
+      txt.appendChild(cat);
+    }
+    c.appendChild(txt);
+    return c;
+  }
+
+  function build(data){
+    var games = data.games || [];
+    var reps = games.filter(function(g){ return g.report; })
+      .map(function(g){ return {g: g, r: g.report}; })
+      .sort(function(a, b){ return b.r.ts - a.r.ts; });
+    hero(data.guide, reps);
+    var grid = $('grid');
+    reps.forEach(function(it){ grid.appendChild(card(it)); });
+    // 아직 리포트가 없는 게임은 끝에 흐리게 둔다.
+    games.filter(function(g){ return !g.report; }).forEach(function(g){
+      var c = el('div', 'card off');
+      if (g.icon) { var img = el('img', 'pic'); img.src = g.icon; img.alt = ''; img.width = img.height = 72; c.appendChild(img); }
+      var txt = el('div', 'txt');
+      txt.appendChild(el('span', 't', g.name));
+      txt.appendChild(el('span', 'm', '리포트 준비 중'));
+      c.appendChild(txt);
+      grid.appendChild(c);
+    });
+    requestAnimationFrame(function(){ stage.classList.add('ready'); });
+  }
+
+  // Pages 는 최대 10분 캐시하므로 목록은 매번 새로 받는다(갱신 직후에도 바로 보이게).
+  var s = document.createElement('script');
+  s.src = 'catalog.js?t=' + Date.now();
+  s.onload = function(){ build(window.LB_CATALOG || {}); };
+  s.onerror = function(){
+    var p = el('p', 'oops', '목록을 불러오지 못했습니다. 새로고침해 주세요.');
+    $('copy').replaceChildren(p); stage.classList.add('ready');
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

@@ -26,8 +26,14 @@ html,body{margin:0;background:var(--stage);color:var(--ink);font:15px/1.55 var(-
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
 
-.bar{position:absolute;inset:0 0 auto;z-index:5;padding:22px var(--gutter);background:linear-gradient(to bottom,rgba(16,17,25,.75),var(--stage-0))}
-.brand{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.bar{position:absolute;inset:0 0 auto;z-index:5;padding:22px var(--gutter);background:linear-gradient(to bottom,rgba(16,17,25,.75),var(--stage-0));
+  display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{margin:0;min-width:0;font-size:20px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 카탈로그 ↔ 밸런스 탭 (balance.html 과 같은 모양) */
+.tabs{flex:none;display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.09);font-size:13.5px;font-weight:500}
+.tabs a{padding:6px 14px;border-radius:999px;color:var(--ink-2);white-space:nowrap;transition:color .15s}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current]{background:#fff;color:#12131a;font-weight:600}
 
 /* 히어로: 색 번짐(흐린 아이콘) → 큰 아이콘 → 어둠 그라데이션 → 글 */
 .stage{position:relative;height:clamp(440px,64vh,640px);overflow:hidden;isolation:isolate}
@@ -83,6 +89,9 @@ a{color:inherit;text-decoration:none}
 
 @media (hover:none){ .nav{display:none} }
 @media (max-width:640px){
+  .bar{padding:18px var(--gutter)}
+  .brand{font-size:17px}
+  .tabs{font-size:12.5px} .tabs a{padding:5px 11px}
   .stage{height:min(80vh,620px)}
   .art{height:auto;width:100%;-webkit-mask-image:linear-gradient(180deg,#000 50%,transparent 100%);mask-image:linear-gradient(180deg,#000 50%,transparent 100%)}
   .shade{background:linear-gradient(0deg,var(--stage) 0%,rgba(16,17,25,.88) 36%,var(--stage-0) 68%)}
@@ -93,7 +102,10 @@ a{color:inherit;text-decoration:none}
 </style>
 </head>
 <body>
-<header class="bar"><h1 class="brand">GRP1 레벨 카탈로그</h1></header>
+<header class="bar">
+  <h1 class="brand">GRP1 레벨 카탈로그</h1>
+  <nav class="tabs" aria-label="보드 전환"><a href="index.html" aria-current="page">카탈로그</a><a href="balance.html">밸런스</a></nav>
+</header>
 
 <section class="stage" id="stage">
   <div id="layers"></div>
@@ -124,6 +136,7 @@ a{color:inherit;text-decoration:none}
   var hash = location.hash || '';
   var $ = function(id){ return document.getElementById(id); };
   var stage = $('stage'), rail = $('rail'), copy = $('copy');
+  document.querySelectorAll('.tabs a').forEach(function(a){ a.href = a.getAttribute('href') + hash; });
   var canHover = matchMedia('(hover: hover)').matches;
   var DAY = 864e5;
   var items = [], cur = -1, swapTimer = 0;

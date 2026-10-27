@@ -43,7 +43,7 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
   var $ = function(id){ return document.getElementById(id); };
   var id = new URLSearchParams(location.search).get('f') || '';
   var m = /(?:^#|[#&])k=([^&]+)/.exec(location.hash);
-  var home = 'index.html' + (location.hash || '');
+  var home = 'index.html' + (location.hash || '');   // 밸런스 문서면 아래에서 balance.html 로 바꾼다
   $('home').href = home;
 
   function store(v){ try { if (v == null) localStorage.removeItem('lb-pass'); else localStorage.setItem('lb-pass', v); } catch (e) {} }
@@ -104,13 +104,16 @@ button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);colo
       return say('이 브라우저에서는 열 수 없습니다. 최신 Chrome · Safari · Edge 로 열어 주세요.', true);
     }
     try { await load('catalog.js?t=' + Date.now()); } catch (e) { return say('목록을 불러오지 못했습니다.', true); }
-    var doc = null;
-    ((window.LB_CATALOG || {}).games || []).forEach(function(g){
-      g.files.forEach(function(f){ if (f.id === id) doc = {game: g.name, title: f.title, ver: f.ver}; });
+    var cat = window.LB_CATALOG || {}, doc = null;
+    (cat.games || []).forEach(function(g){
+      g.files.forEach(function(f){ if (f.id === id) doc = {name: g.name + ' · ' + f.title, ver: f.ver}; });
+      if (g.report && g.report.id === id) doc = {name: g.name + ' · ' + g.report.title, ver: g.report.ver, balance: true};
     });
+    if (cat.guide && cat.guide.id === id) doc = {name: cat.guide.title, ver: cat.guide.ver, balance: true};
+    if (doc && doc.balance) { home = 'balance.html' + (location.hash || ''); $('home').href = home; }
     if (!doc) return say('없는 문서입니다. 목록에서 다시 골라 주세요.', true);
-    $('title').textContent = doc.game + ' · ' + doc.title;
-    document.title = doc.game + ' · ' + doc.title;
+    $('title').textContent = doc.name;
+    document.title = doc.name;
 
     say('내려받는 중…');
     try { await load('data/' + encodeURIComponent(id) + '.enc.js?v=' + doc.ver); } catch (e) { return say('문서를 내려받지 못했습니다.', true); }
