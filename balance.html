@@ -83,8 +83,6 @@ a{color:inherit;text-decoration:none}
 .open::after{content:"";position:absolute;inset:0;border-radius:16px}   /* 카드 전체가 리포트 링크 */
 .open:focus-visible{outline:none}
 .open:focus-visible::after{outline:2px solid var(--c,var(--accent));outline-offset:3px}
-.cat{position:relative;z-index:1;display:inline-block;margin-top:6px;font-size:13px;font-weight:500;color:var(--c,var(--accent))}
-.cat:hover{text-decoration:underline;text-underline-offset:3px}
 .card.off{opacity:.42}
 
 .foot{padding:4px var(--gutter) 36px;color:var(--ink-3);font-size:12.5px}
@@ -225,12 +223,6 @@ a{color:inherit;text-decoration:none}
     var when = el('span', null, ago(it.r)); when.title = it.r.updated + ' 갱신 (한국 시간)';
     m.appendChild(when);
     txt.appendChild(m);
-    // 같은 게임의 레벨 카탈로그가 있으면 바로 가는 링크
-    if (it.g.files.length) {
-      var cat = el('a', 'cat', '레벨 카탈로그 →');
-      cat.href = docHref(it.g.files[0]);
-      txt.appendChild(cat);
-    }
     c.appendChild(txt);
     return c;
   }
