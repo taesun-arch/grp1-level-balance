@@ -63,7 +63,7 @@ a{color:inherit;text-decoration:none}
 .oops{position:absolute;z-index:3;left:var(--gutter);bottom:96px;color:var(--ink-2)}
 
 /* 포스터 줄: 최근 갱신순. 히어로 아래쪽에 살짝 걸친다 */
-.row{position:relative;z-index:4;margin-top:-44px;padding-bottom:28px}
+.row{position:relative;z-index:4;margin-top:-44px;padding-bottom:64px}
 .row h3{margin:0;padding:0 var(--gutter);font-size:18px;font-weight:600}
 .rail-wrap{position:relative}
 .rail{display:flex;gap:clamp(14px,1.6vw,22px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gutter);
@@ -87,8 +87,6 @@ a{color:inherit;text-decoration:none}
 .nav.prev{left:0;border-radius:0 10px 10px 0} .nav.next{right:0;border-radius:10px 0 0 10px}
 .nav:hover{background:rgba(16,17,25,.9)}
 .nav[hidden]{display:none}
-
-.foot{padding:4px var(--gutter) 36px;color:var(--ink-3);font-size:12.5px}
 
 @media (hover:none){ .nav{display:none} }
 @media (max-width:640px){
@@ -129,8 +127,6 @@ a{color:inherit;text-decoration:none}
     <button class="nav next" id="next" type="button" aria-label="뒤쪽 게임 보기" hidden>›</button>
   </div>
 </section>
-
-<footer class="foot">공유 링크의 비밀번호(#k=)는 각 카탈로그로 그대로 넘어갑니다.</footer>
 
 <script>
 (function(){

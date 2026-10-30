@@ -70,7 +70,7 @@ a{color:inherit;text-decoration:none}
 .fan figcaption{position:absolute;left:0;right:0;bottom:-6px;text-align:center;color:var(--ink-2);font-size:13.5px}
 
 /* 게임별 리포트 카드 */
-.sec{position:relative;z-index:4;margin-top:-36px;padding:0 var(--gutter) 30px}
+.sec{position:relative;z-index:4;margin-top:-36px;padding:0 var(--gutter) 64px}
 .sec h3{margin:0 0 16px;font-size:18px;font-weight:600}
 .sec h3 small{margin-left:10px;color:var(--ink-3);font-size:13.5px;font-weight:400}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:clamp(12px,1.4vw,18px)}
@@ -87,8 +87,6 @@ a{color:inherit;text-decoration:none}
 .open:focus-visible{outline:none}
 .open:focus-visible::after{outline:2px solid var(--c,var(--accent));outline-offset:3px}
 .card.off{opacity:.42}
-
-.foot{padding:4px var(--gutter) 36px;color:var(--ink-3);font-size:12.5px}
 
 @media (max-width:640px){
   .bar{padding:18px var(--gutter)}
@@ -132,8 +130,6 @@ a{color:inherit;text-decoration:none}
   <h3 id="sec-title">게임별 적용 리포트<small>최근 갱신순</small></h3>
   <div class="grid" id="grid"></div>
 </section>
-
-<footer class="foot">공유 링크의 비밀번호(#k=)는 각 문서로 그대로 넘어갑니다.</footer>
 
 <script>
 (function(){
